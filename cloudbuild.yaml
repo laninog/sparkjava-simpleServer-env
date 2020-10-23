@@ -11,6 +11,28 @@ steps:
   - 'CLOUDSDK_COMPUTE_ZONE=europe-west1-b'
   - 'CLOUDSDK_CONTAINER_CLUSTER=develop-cluster'
 
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: 'bash'
+  args: [ '-c', 'gcloud secrets versions access latest --secret=build-github-ssh-key > /root/.ssh/id_github' ]
+  volumes:
+    - name: 'ssh'
+      path: /root/.ssh
+
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      chmod 600 /root/.ssh/id_github
+      cat <<EOF >/root/.ssh/config
+      Hostname github.com
+      IdentityFile /root/.ssh/id_github
+      EOF
+      ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts
+  volumes:
+    - name: 'ssh'
+      path: /root/.ssh
+
 # This step copies the applied manifest to the production branch
 # The COMMIT_SHA variable is automatically
 # replaced by Cloud Build.
@@ -31,3 +53,6 @@ steps:
     $(git log --format=%B -n 1 $COMMIT_SHA)" && \
     # Push the changes back to Cloud Source Repository
     git push origin production
+  volumes:
+    - name: 'ssh'
+      path: /root/.ssh
