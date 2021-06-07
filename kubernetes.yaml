@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: spark-java
-        image: gcr.io/load-test-vms/sparkjava-simple-server:1731da0
+        image: gcr.io/load-test-vms/sparkjava-simple-server:d322b38
         ports:
         - containerPort: 8080
 ---
